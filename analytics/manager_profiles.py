@@ -15,6 +15,15 @@ def main():
         "manager_features"
     )
 
+    try:
+        manager_history = load_table("manager_history")
+        features = features.merge(
+            manager_history[["manager_id", "manager_name"]],
+            on="manager_id",
+            how="left",
+        )
+    except Exception:
+        features["manager_name"] = None
 
     profiles = build_manager_profiles(
         features
@@ -36,6 +45,8 @@ def main():
 
     columns = [
         "manager_id",
+
+        "manager_name",
 
         "seasons_active",
 

@@ -1,9 +1,16 @@
 """
 Lineup analytics core functions.
 
-This module contains reusable lineup calculations.
-Analytics reports should consume these functions rather than
-rebuilding lineup logic independently.
+⚠️ NOT CURRENTLY USED — analytics/lineup_utils.py + lineup_efficiency.py
+implement the real (roster-slot-constrained) optimal lineup calculation
+and are what run_all.py actually uses.
+
+calculate_optimal_points() below sums ALL rostered players regardless
+of position (its own docstring admits it "does not enforce roster slot
+restrictions") — that overstates true optimal points, since a real
+lineup can't start e.g. 5 RBs at once. Left here for reference /
+possible future consolidation with lineup_utils.py, but don't wire this
+into a report as-is.
 """
 
 import pandas as pd

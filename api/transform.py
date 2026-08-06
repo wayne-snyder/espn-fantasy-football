@@ -55,10 +55,41 @@ def build_team_lookup(teams):
 
     for team in teams:
 
+        owners = team.get("owners", [])
+
         lookup[team["id"]] = {
             "team_name": team.get("name"),
             "abbrev": team.get("abbrev"),
-            "owner": team.get("owners", []),
+            "owners": owners,
+            "owner": owners[0] if owners else None,
+        }
+
+    return lookup
+
+
+def build_manager_lookup(users):
+    """
+    users: league["members"] — already included in the same league
+    response you fetch with mTeam/mRoster/mSettings. No separate API
+    call needed.
+    """
+
+    lookup = {}
+
+    for user in users:
+
+        user_id = user.get("id")
+
+        if not user_id:
+            continue
+
+        lookup[user_id] = {
+            "manager_id": user_id,
+            "manager_name": (
+                user.get("displayName")
+                or user.get("firstName")
+                or user_id
+            ),
         }
 
     return lookup
@@ -166,41 +197,3 @@ def transform_settings(league_data, season):
         else None,
         "playoff_team_count": schedule_settings.get("playoffTeamCount"),
     }
-def build_team_lookup(teams):
-
-    lookup = {}
-
-    for team in teams:
-
-        owners = team.get("owners", [])
-
-        lookup[team["id"]] = {
-            "team_name": team.get("name"),
-            "abbrev": team.get("abbrev"),
-            "owners": owners,
-            "owner": owners[0] if owners else None,
-        }
-
-    return lookup
-
-def build_manager_lookup(users):
-
-    lookup = {}
-
-    for user in users:
-
-        user_id = user.get("id")
-
-        if not user_id:
-            continue
-
-        lookup[user_id] = {
-            "manager_id": user_id,
-            "manager_name": (
-                user.get("displayName")
-                or user.get("firstName")
-                or user_id
-            ),
-        }
-
-    return lookup

@@ -8,6 +8,8 @@ Produces:
     auction_strategy.csv
 """
 
+import pandas as pd
+
 from db_utils import load_table, save_report
 
 
@@ -134,6 +136,9 @@ def build_auction_strategy(profiles):
                 "manager_id":
                     row["manager_id"],
 
+                "manager_name":
+                    row.get("manager_name"),
+
                 "primary_archetype":
                     row["primary_archetype"],
 
@@ -161,7 +166,7 @@ def build_auction_strategy(profiles):
         )
 
 
-    return __import__("pandas").DataFrame(rows)
+    return pd.DataFrame(rows)
 
 
 
