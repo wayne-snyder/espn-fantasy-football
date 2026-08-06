@@ -1,66 +1,55 @@
-"""
-Manager personality engine.
-
-Creates fantasy auction manager profiles from manager_features.
-
-Responsible for:
-- behavioral scoring
-- archetype classification
-- secondary traits
-- confidence scoring
-- draft strategy recommendations
-"""
-
 import pandas as pd
 
 
-
 def add_manager_scores(df):
-    """
-    Creates normalized behavior scores.
-    """
 
     df = df.copy()
 
+    # Normalize league behavior
+    df["aggression_z"] = (
+        df["avg_aggression"]
+        - df["avg_aggression"].mean()
+    ) / df["avg_aggression"].std()
 
-    max_bid = df["avg_max_bid"].max()
 
-    if max_bid <= 0:
-        max_bid = 1
+    df["patience_z"] = (
+        df["avg_patience"]
+        - df["avg_patience"].mean()
+    ) / df["avg_patience"].std()
 
 
-    # Aggression:
-    # Heavy bids + aggressive purchases + early spending behavior
+    df["stars_z"] = (
+        df["avg_stars_scrubs"]
+        - df["avg_stars_scrubs"].mean()
+    ) / df["avg_stars_scrubs"].std()
+
+
+    df["max_bid_z"] = (
+        df["avg_max_bid"]
+        - df["avg_max_bid"].mean()
+    ) / df["avg_max_bid"].std()
+
+
+    # Weighted auction personalities
 
     df["aggression_score"] = (
-        df["avg_aggression"] * 0.50
+        df["aggression_z"] * .50
         +
-        (100 - df["avg_patience"]) * 0.30
-        +
-        (
-            df["avg_max_bid"]
-            /
-            max_bid
-            *
-            100
-        ) * 0.20
+        df["max_bid_z"] * .30
+        -
+        df["patience_z"] * .20
     )
 
-
-    # Patience:
-    # Waiting for value and avoiding early spending
 
     df["patience_score"] = (
-        df["avg_patience"] * 0.70
-        +
-        (100 - df["avg_aggression"]) * 0.30
+        df["patience_z"] * .70
+        -
+        df["aggression_z"] * .30
     )
 
 
-    # Stars and scrubs tendency
-
     df["stars_scrubs_score"] = (
-        df["avg_stars_scrubs"]
+        df["stars_z"]
     )
 
 
@@ -68,35 +57,52 @@ def add_manager_scores(df):
 
 
 
+def add_manager_percentiles(df):
+
+    df = df.copy()
+
+    for col in [
+        "aggression_score",
+        "patience_score",
+        "stars_scrubs_score"
+    ]:
+
+        df[f"{col}_percentile"] = (
+            df[col]
+            .rank(pct=True)
+        )
+
+
+    return df
+
+
+
 def classify_manager(row):
-    """
-    Determines primary manager archetype.
-    """
 
-    aggression = row["avg_aggression"]
+    aggression = row["aggression_score_percentile"]
 
-    patience = row["avg_patience"]
+    patience = row["patience_score_percentile"]
 
-    stars = row["avg_stars_scrubs"]
+    stars = row["stars_scrubs_score_percentile"]
 
 
-    # Aggressive bidders
-    if aggression >= 33:
-        return "The Shark"
-
-
-    # Concentrates budget into elite players
-    if stars >= 60:
+    # Highest concentration on stars
+    if stars >= .75:
         return "The Whale"
 
 
-    # Patient bargain hunter
-    if patience >= 20:
+    # Most aggressive spenders
+    if aggression >= .75:
+        return "The Shark"
+
+
+    # Patient value seekers
+    if patience >= .75:
         return "The Sniper"
 
 
-    # Avoids spending
-    if aggression <= 22:
+    # Conservative managers
+    if aggression <= .25 and stars < .60:
         return "The Value Hunter"
 
 
@@ -105,50 +111,36 @@ def classify_manager(row):
 
 
 def assign_secondary_trait(row):
-    """
-    Adds additional tendencies.
-    """
 
-    traits = []
+    traits=[]
 
 
-    if row["avg_stars_scrubs"] >= 55:
+    if row["stars_scrubs_score_percentile"] >= .75:
         traits.append(
             "Stars & Scrubs"
         )
 
 
-    favorite = row.get(
-        "favorite_positions",
-        ""
-    )
-
-    if isinstance(favorite, str) and favorite:
-
+    if row["aggression_score_percentile"] >= .75:
         traits.append(
-            favorite.split(",")[0].strip()
-            +
-            " Heavy"
+            "Aggressive Spending"
         )
 
 
-    if row["avg_patience"] <= 10:
-
-        traits.append(
-            "Fast Starter"
-        )
-
-
-    elif row["avg_patience"] >= 20:
-
+    if row["patience_score_percentile"] >= .75:
         traits.append(
             "Late Value"
         )
 
 
-    if not traits:
-
-        return "No strong secondary tendency"
+    if row["favorite_positions"]:
+        traits.append(
+            row["favorite_positions"]
+            .split(",")[0]
+            .strip()
+            +
+            " Preference"
+        )
 
 
     return ", ".join(traits)
@@ -156,117 +148,72 @@ def assign_secondary_trait(row):
 
 
 def calculate_confidence(row):
-    """
-    Confidence based on available seasons.
-    """
 
-    seasons = row["seasons_active"]
+    seasons=row["seasons_active"]
 
-
-    if seasons >= 4:
+    if seasons >=4:
         return "High"
 
-
-    if seasons >= 2:
+    if seasons >=2:
         return "Medium"
-
 
     return "Low"
 
 
 
 def generate_strategy(row):
-    """
-    Generates auction advice.
-    """
 
-    strategies = {
+    strategies={
 
         "The Shark":
-            (
-                "Expect aggressive bidding. "
-                "Avoid unnecessary wars and let them drain budget."
-            ),
-
+        "Attack their preferred players early. Let them spend aggressively and preserve budget.",
 
         "The Whale":
-            (
-                "Expect premium player attacks. "
-                "Target depth and value after elite purchases."
-            ),
-
+        "Avoid competing for elite players. Target depth after they exhaust premium capital.",
 
         "The Sniper":
-            (
-                "Watch late auction opportunities. "
-                "Protect discounted players from slipping away."
-            ),
-
+        "Expect late value hunting. Secure targets before the endgame discount window.",
 
         "The Value Hunter":
-            (
-                "Increase nomination pressure. "
-                "Force uncomfortable spending decisions."
-            ),
-
+        "Pressure them with nominations outside their comfort zone.",
 
         "Balanced":
-            (
-                "No extreme tendency identified. "
-                "Use standard auction tactics."
-            )
+        "No dominant behavioral pattern. Adjust based on roster construction."
+
     }
 
-
-    return strategies.get(
-        row["primary_archetype"],
-        ""
-    )
+    return strategies[row["primary_archetype"]]
 
 
 
 def build_manager_profiles(df):
-    """
-    Complete manager personality pipeline.
-    """
 
-    df = df.copy()
+    df=add_manager_scores(df)
+
+    df=add_manager_percentiles(df)
 
 
-    df = add_manager_scores(
-        df
+    df["primary_archetype"]=df.apply(
+        classify_manager,
+        axis=1
     )
 
 
-    df["primary_archetype"] = (
-        df.apply(
-            classify_manager,
-            axis=1
-        )
+    df["secondary_trait"]=df.apply(
+        assign_secondary_trait,
+        axis=1
     )
 
 
-    df["secondary_trait"] = (
-        df.apply(
-            assign_secondary_trait,
-            axis=1
-        )
+    df["confidence"]=df.apply(
+        calculate_confidence,
+        axis=1
     )
 
 
-    df["confidence"] = (
-        df.apply(
-            calculate_confidence,
-            axis=1
-        )
-    )
-
-
-    df["draft_strategy"] = (
-        df.apply(
-            generate_strategy,
-            axis=1
-        )
+    df["draft_strategy"]=df.apply(
+        generate_strategy,
+        axis=1
     )
 
 

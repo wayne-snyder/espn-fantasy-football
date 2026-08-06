@@ -5,7 +5,7 @@ This report consumes the manager personality engine
 from analytics.core.manager.
 """
 
-from db_utils import load_table, save_report
+from db_utils import load_table, save_report, save_table
 from core.manager import build_manager_profiles
 
 
@@ -90,6 +90,11 @@ def main():
         profiles,
         "manager_profiles.csv"
     )
+
+    save_table(
+        profiles,
+        "manager_profiles"
+    ) 
 
 
 if __name__ == "__main__":

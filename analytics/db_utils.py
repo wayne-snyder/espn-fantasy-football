@@ -102,3 +102,19 @@ def save_report(df, filename):
     )
 
     return path
+
+def save_table(df, table_name):
+    conn = get_connection()
+
+    df.to_sql(
+        table_name,
+        conn,
+        if_exists="replace",
+        index=False
+    )
+
+    conn.close()
+
+    print(
+        f"  -> Database table updated: {table_name} ({len(df)} rows)"
+    )

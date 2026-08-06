@@ -1,8 +1,7 @@
 """
 Builds manager-level behavioral features from auction_features.
 
-This module is responsible only for feature aggregation.
-Analytics and reports should consume manager_features.
+Feature aggregation only.
 """
 
 import pandas as pd
@@ -11,9 +10,6 @@ from db_utils import load_table, save_report, save_table
 
 
 def calculate_manager_features(df):
-    """
-    Creates one row per manager with historical auction behavior.
-    """
 
     results = []
 
@@ -21,19 +17,18 @@ def calculate_manager_features(df):
 
         manager = manager.copy()
 
-        # -----------------------------------
-        # Seasons
-        # -----------------------------------
-
-        seasons = sorted(
-            manager["season"].unique().tolist()
-        )
-
         total_players = len(manager)
 
-        # -----------------------------------
-        # Spending behavior
-        # -----------------------------------
+        seasons = sorted(
+            manager["season"].unique()
+        )
+
+        total_spend = manager["bid_amount"].sum()
+
+
+        # -------------------------------
+        # Spending
+        # -------------------------------
 
         season_spend = (
             manager
@@ -52,164 +47,199 @@ def calculate_manager_features(df):
             .mean()
         )
 
-        # -----------------------------------
+
+        # -------------------------------
         # Aggression
-        # -----------------------------------
+        # -------------------------------
 
-        aggressive_mask = (
-            (
-                manager["league_price_percentile"] >= 0.75
-            )
+        aggressive = (
+            (manager["league_price_percentile"] >= .75)
             |
-            (
-                manager["is_elite_purchase"]
-            )
+            (manager["is_elite_purchase"])
         )
-
-        aggressive_purchases = aggressive_mask.sum()
 
         aggression = (
-            aggressive_purchases
-            / total_players
-            * 100
-            if total_players > 0
-            else 0
+            aggressive.sum()
+            /
+            total_players
+            *
+            100
         )
 
-        # -----------------------------------
-        # Patience / Spending Timing
-        # -----------------------------------
 
-        early_draft = manager[
+        # -------------------------------
+        # Patience
+        # -------------------------------
+
+        early = manager[
             manager["purchase_number"] <= 5
         ]
 
-        total_spend = manager["bid_amount"].sum()
-
-        early_spend = (
-            early_draft["bid_amount"]
-            .sum()
-        )
-
-        early_spending_pct = (
-            early_spend
-            / total_spend
-            * 100
-            if total_spend > 0
+        early_spend_pct = (
+            early["bid_amount"].sum()
+            /
+            total_spend
+            *
+            100
+            if total_spend
             else 0
         )
 
-        # Higher = waits longer to spend
+        patience = 100 - early_spend_pct
 
-        patience = (
-            100
-            - early_spending_pct
-        )
 
-        # -----------------------------------
-        # Stars and Scrubs
-        # -----------------------------------
+        # -------------------------------
+        # Stars & Scrubs
+        # -------------------------------
 
-        stars_scrubs_scores = []
+        stars_scrubs = []
 
-        for season, draft in manager.groupby("season"):
-
-            draft = draft.sort_values(
-                "bid_amount",
-                ascending=False
-            )
+        for _, season_df in manager.groupby("season"):
 
             season_total = (
-                draft["bid_amount"]
+                season_df["bid_amount"]
                 .sum()
             )
-
-            if season_total == 0:
-                continue
 
             top_two = (
-                draft
-                .head(2)["bid_amount"]
+                season_df
+                .nlargest(
+                    2,
+                    "bid_amount"
+                )["bid_amount"]
                 .sum()
             )
 
-            stars_scrubs_scores.append(
-                top_two
-                / season_total
-                * 100
-            )
+            if season_total:
+                stars_scrubs.append(
+                    top_two /
+                    season_total *
+                    100
+                )
+
 
         avg_stars_scrubs = (
-            sum(stars_scrubs_scores)
-            / len(stars_scrubs_scores)
-            if stars_scrubs_scores
+            sum(stars_scrubs) /
+            len(stars_scrubs)
+            if stars_scrubs
             else 0
         )
 
-        # -----------------------------------
-        # Favorite positions
-        # -----------------------------------
 
-        positions = (
+        # -------------------------------
+        # New features
+        # -------------------------------
+
+        elite_rate = (
+            manager["is_elite_purchase"]
+            .mean()
+            *
+            100
+        )
+
+
+        value_rate = (
+            manager["is_value_purchase"]
+            .mean()
+            *
+            100
+        )
+
+
+        position_spend = (
             manager
-            .groupby("position")["bid_amount"]
+            .groupby("position")
+            ["bid_amount"]
             .sum()
+        )
+
+
+        top_position_pct = (
+            position_spend.max()
+            /
+            total_spend
+            *
+            100
+            if total_spend
+            else 0
+        )
+
+
+        if avg_stars_scrubs >= 55:
+            roster_style = "Stars & Scrubs"
+
+        elif top_position_pct >= 45:
+            roster_style = "Position Concentration"
+
+        elif avg_bid < 12:
+            roster_style = "Depth Builder"
+
+        else:
+            roster_style = "Balanced"
+
+
+        favorite_positions = ", ".join(
+            position_spend
             .sort_values(
                 ascending=False
             )
-        )
-
-        favorite_positions = ", ".join(
-            positions
             .head(3)
             .index
             .tolist()
         )
 
-        # -----------------------------------
-        # Save
-        # -----------------------------------
 
-        results.append(
+        results.append({
 
-            {
-                "manager_id":
-                    manager_id,
+            "manager_id":
+                manager_id,
 
-                "seasons_active":
-                    len(seasons),
+            "seasons_active":
+                len(seasons),
 
-                "first_season":
-                    min(seasons),
+            "first_season":
+                min(seasons),
 
-                "last_season":
-                    max(seasons),
+            "last_season":
+                max(seasons),
 
-                "avg_spend":
-                    round(avg_spend, 2),
+            "avg_spend":
+                round(avg_spend,2),
 
-                "avg_bid":
-                    round(avg_bid, 2),
+            "avg_bid":
+                round(avg_bid,2),
 
-                "avg_max_bid":
-                    round(avg_max_bid, 2),
+            "avg_max_bid":
+                round(avg_max_bid,2),
 
-                "avg_aggression":
-                    round(aggression, 1),
+            "avg_aggression":
+                round(aggression,1),
 
-                "avg_patience":
-                    round(patience, 1),
+            "avg_patience":
+                round(patience,1),
 
-                "avg_stars_scrubs":
-                    round(avg_stars_scrubs, 1),
+            "avg_stars_scrubs":
+                round(avg_stars_scrubs,1),
 
-                "favorite_positions":
-                    favorite_positions,
-            }
+            "elite_purchase_rate":
+                round(elite_rate,1),
 
-        )
+            "value_purchase_rate":
+                round(value_rate,1),
+
+            "position_concentration":
+                round(top_position_pct,1),
+
+            "roster_style":
+                roster_style,
+
+            "favorite_positions":
+                favorite_positions
+        })
+
 
     return pd.DataFrame(results)
+
 
 
 def main():
@@ -218,22 +248,22 @@ def main():
         "auction_features"
     )
 
+
     features = calculate_manager_features(
         auction
     )
 
-    print(
-        f"Created manager_features ({len(features)} rows)"
-    )
 
     print(
         features.head()
     )
 
+
     save_report(
         features,
         "manager_features.csv"
     )
+
 
     save_table(
         features,
