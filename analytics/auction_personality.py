@@ -1,167 +1,76 @@
 """
-Creates career auction personality profiles.
+Auction Personality Analytics
 
-Uses manager_id instead of fantasy team names.
+Consumes auction_features and creates manager behavior profiles.
 
-Outputs:
-- Spending style
-- Aggression
-- Patience
-- Stars/Scrubs tendency
-- Market impact
-- Archetype
-- Draft recommendations
+This file should interpret behavior only.
+Feature engineering belongs in analytics/core.
 """
 
 from db_utils import load_table, save_report
-import pandas as pd
 
 
-def calculate_archetype(row):
+def classify_archetype(row):
+    """
+    Classifies manager auction personality.
+    """
 
     aggression = row["avg_aggression"]
     patience = row["avg_patience"]
     stars = row["avg_stars_scrubs"]
 
-
-    if aggression >= 70 and patience < 40:
+    if aggression >= 75 and patience < 40:
         return "The Shark"
 
-    if stars >= 80 and aggression >= 50:
-        return "The Whale"
-
-    if patience >= 75:
+    if patience >= 70 and aggression < 50:
         return "The Sniper"
 
-    if aggression < 35:
-        return "The Value Hunter"
+    if stars >= 75:
+        return "Stars and Scrubs"
+
+    if stars <= 30 and patience >= 60:
+        return "Value Hunter"
 
     return "Balanced"
 
 
-def draft_strategy(archetype):
+
+def strategy_description(archetype):
 
     strategies = {
 
         "The Shark":
-            "Avoid bidding wars. Let them spend premium dollars.",
-
-        "The Whale":
-            "Allow elite purchases. Attack value afterward.",
+            "Aggressive bidder. Expect premium bids early. Avoid unnecessary bidding wars.",
 
         "The Sniper":
-            "Do not leave bargains uncontested late.",
+            "Patient manager. Let others spend first, attack discounts late.",
 
-        "The Value Hunter":
-            "Force them to spend by nominating their targets.",
+        "Stars and Scrubs":
+            "Concentrates money into elite players. Exploit weak roster depth.",
+
+        "Value Hunter":
+            "Avoids premium prices. Target players after market cools.",
 
         "Balanced":
-            "Use normal auction tactics."
+            "No extreme tendency. Use standard auction tactics."
     }
 
     return strategies.get(
         archetype,
-        ""
+        "Unknown"
     )
 
 
-def main():
 
-    picks = load_table(
-        "auction_picks_enriched"
-    )
+def build_personality_features(df):
 
-
-    # Total spending
-    manager_season = (
-        picks.groupby(
+    manager = (
+        df.groupby(
             [
-                "manager_id",
-                "season",
-                "team_name"
+                "manager_id"
             ]
         )
         .agg(
-            total_spend=(
-                "bid_amount",
-                "sum"
-            ),
-
-            avg_bid=(
-                "bid_amount",
-                "mean"
-            ),
-
-            max_bid=(
-                "bid_amount",
-                "max"
-            ),
-
-            players_bought=(
-                "player_id",
-                "count"
-            )
-        )
-        .reset_index()
-    )
-
-
-    # Spending percentage
-    manager_season[
-        "spend_share"
-    ] = (
-        manager_season[
-            "total_spend"
-        ]
-        /
-        200
-        *
-        100
-    )
-
-
-    # Early spending
-    early = (
-        picks[
-            picks["pick_number"] <= 40
-        ]
-        .groupby(
-            [
-                "manager_id",
-                "season"
-            ]
-        )["bid_amount"]
-        .sum()
-    )
-
-
-    manager_season["early_spending_pct"] = (
-        manager_season.apply(
-            lambda x:
-            early.get(
-                (
-                    x.manager_id,
-                    x.season
-                ),
-                0
-            )
-            /
-            x.total_spend
-            *
-            100,
-            axis=1
-        )
-    )
-
-
-    # Career profile
-
-    career = (
-        manager_season.groupby(
-            "manager_id"
-        )
-        .agg(
-
             seasons=(
                 "season",
                 "nunique"
@@ -170,28 +79,46 @@ def main():
             team_names=(
                 "team_name",
                 lambda x:
-                    ", ".join(
-                        sorted(set(x))
+                ", ".join(
+                    sorted(
+                        set(x)
                     )
+                )
             ),
 
             avg_spend=(
-                "total_spend",
+                "bid_amount",
                 "mean"
             ),
 
             avg_bid=(
-                "avg_bid",
+                "bid_amount",
                 "mean"
             ),
 
             avg_max_bid=(
-                "max_bid",
-                "mean"
+                "bid_amount",
+                "max"
             ),
 
             avg_early_spending=(
-                "early_spending_pct",
+                "draft_phase",
+                lambda x:
+                (x == "early").mean() * 100
+            ),
+
+            avg_aggression=(
+                "league_price_percentile",
+                "mean"
+            ),
+
+            avg_patience=(
+                "remaining_budget",
+                "mean"
+            ),
+
+            avg_stars_scrubs=(
+                "is_elite_purchase",
                 "mean"
             )
         )
@@ -199,59 +126,71 @@ def main():
     )
 
 
-    # Personality scoring
-
-    career["avg_aggression"] = (
-        career["avg_max_bid"]
-        /
-        career["avg_max_bid"].max()
-        *
-        100
+    manager["avg_early_spending"] = (
+        manager["avg_early_spending"]
+        .round(1)
     )
 
 
-    career["avg_patience"] = (
-        100 -
-        career["avg_early_spending"]
+    manager["avg_aggression"] = (
+        manager["avg_aggression"]
+        .mul(100)
+        .round(1)
     )
 
 
-    career["avg_stars_scrubs"] = (
-        career["avg_max_bid"]
-        /
-        career["avg_bid"]
-        *
-        10
-    ).clip(
-        0,
-        100
+    manager["avg_patience"] = (
+        manager["avg_patience"]
+        .rank(pct=True)
+        .mul(100)
+        .round(1)
     )
 
 
-    career["archetype"] = career.apply(
-        calculate_archetype,
-        axis=1
+    manager["avg_stars_scrubs"] = (
+        manager["avg_stars_scrubs"]
+        .mul(100)
+        .round(1)
     )
 
 
-    career["draft_strategy"] = (
-        career["archetype"]
-        .apply(
-            draft_strategy
+    manager["archetype"] = (
+        manager.apply(
+            classify_archetype,
+            axis=1
         )
     )
 
 
-    career = career.round(1)
-
-
-    save_report(
-        career,
-        "manager_personality_career.csv"
+    manager["draft_strategy"] = (
+        manager["archetype"]
+        .apply(
+            strategy_description
+        )
     )
 
 
-    print(career)
+    return manager
+
+
+
+def main():
+
+    auction = load_table(
+        "auction_features"
+    )
+
+    report = build_personality_features(
+        auction
+    )
+
+    save_report(
+        report,
+        "manager_personality_career.csv"
+    )
+
+    print(report)
+
 
 
 if __name__ == "__main__":

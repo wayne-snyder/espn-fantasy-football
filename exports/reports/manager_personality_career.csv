@@ -1,17 +1,17 @@
 manager_id,seasons,team_names,avg_spend,avg_bid,avg_max_bid,avg_early_spending,avg_aggression,avg_patience,avg_stars_scrubs,archetype,draft_strategy
-{0606EA12-F1DD-46DC-AD64-5BBB77C7FBA0},4,"Flipadelphia Cheesestoinks, Greendale Human Beings",184.5,11.5,60.2,66.9,83.7,33.1,52.2,The Shark,Avoid bidding wars. Let them spend premium dollars.
-{0CAA3095-F39E-419B-AA30-95F39EF19BFD},1,Slim Pickins,200.0,12.5,59.0,87.5,81.9,12.5,47.2,The Shark,Avoid bidding wars. Let them spend premium dollars.
-{0EACE3A7-D466-49E3-8215-27D02C303DD5},4,Team Clucker Fuckers,196.2,12.3,49.8,73.8,69.1,26.2,40.6,Balanced,Use normal auction tactics.
-{19D1DD9C-0399-480D-BF89-665D6B1E3BC4},4,"False Shart, Here's to you, Run CMC",199.8,12.5,59.5,82.3,82.6,17.7,47.7,The Shark,Avoid bidding wars. Let them spend premium dollars.
-{337F82E7-47FE-4690-BF82-E747FE569002},4,"Allen to this!, Cee Dees in the Face, Put it Justin??, Worst Cook",200.0,12.5,66.5,76.6,92.4,23.4,53.2,The Shark,Avoid bidding wars. Let them spend premium dollars.
-{4931351F-1C68-451E-937C-87B0C6CCCF5E},4,"D. Adams Family, LaPorta Potty, MaChungus, Two Gibbs, One Kupp",199.2,12.5,58.5,69.2,81.2,30.8,47.0,The Shark,Avoid bidding wars. Let them spend premium dollars.
-{4D0EB596-A4FF-4A67-9781-E287C6AEBEB9},4,One-cut Heroes,196.8,12.3,50.5,73.4,70.1,26.6,41.1,The Shark,Avoid bidding wars. Let them spend premium dollars.
-{50BD0E27-9A94-4299-A430-801818AE7FD3},3,"Cartel Del Taco, Olivas - Alone",181.0,11.3,50.0,60.2,69.4,39.8,44.2,Balanced,Use normal auction tactics.
-{747BE81C-57BC-46C7-9F3A-530CB8AB1A90},2,"El Ultimo Hombre, Shart City Poo Bums",200.0,12.5,72.0,81.8,100.0,18.2,57.6,The Shark,Avoid bidding wars. Let them spend premium dollars.
-"{747BE81C-57BC-46C7-9F3A-530CB8AB1A90}, {B61A326A-20D9-4ECC-AD14-FD043471A8F4}",1,El Ultimo Hombre,200.0,12.5,49.0,81.5,68.1,18.5,39.2,Balanced,Use normal auction tactics.
-{74BB4243-DBAE-4F53-B44E-4BD091059259},4,Show Me Dem TDs,200.0,12.5,71.5,78.9,99.3,21.1,57.2,The Shark,Avoid bidding wars. Let them spend premium dollars.
-"{B61A326A-20D9-4ECC-AD14-FD043471A8F4}, {7B2363C9-F4A6-42D8-85E8-1CCA2D6DFC08}",1,Shooting Ropes💦,200.0,12.5,67.0,90.0,93.1,10.0,53.6,The Shark,Avoid bidding wars. Let them spend premium dollars.
-{D1BB66CC-C624-4EFB-A903-610BBD8BC6FB},4,Seattle  Ricks ,187.8,11.7,59.5,71.9,82.6,28.1,50.7,The Shark,Avoid bidding wars. Let them spend premium dollars.
-{E7A504AE-3B49-4CF1-B4F7-AA7EEBF5E474},4,Whos Yurdatty,190.5,11.9,56.8,63.2,78.8,36.8,47.7,The Shark,Avoid bidding wars. Let them spend premium dollars.
-{EB4B0726-9D8A-4827-8AD7-BDB440E89192},1,Blunder Bust 2000,200.0,12.5,38.0,94.0,52.8,6.0,30.4,Balanced,Use normal auction tactics.
-{EF9098F5-9F59-4CD9-9DAF-DD0BB49AAE98},3,Kareemin' My Jeans,198.7,12.4,65.0,77.0,90.3,23.0,52.3,The Shark,Avoid bidding wars. Let them spend premium dollars.
+{0606EA12-F1DD-46DC-AD64-5BBB77C7FBA0},4,"Flipadelphia Cheesestoinks, Greendale Human Beings",11.53125,11.53125,69,0.0,56.5,93.8,6.2,Value Hunter,Avoids premium prices. Target players after market cools.
+{0CAA3095-F39E-419B-AA30-95F39EF19BFD},1,Slim Pickins,12.5,12.5,59,0.0,46.1,18.8,12.5,Balanced,No extreme tendency. Use standard auction tactics.
+{0EACE3A7-D466-49E3-8215-27D02C303DD5},4,Team Clucker Fuckers,12.265625,12.265625,54,0.0,52.2,68.8,3.1,Value Hunter,Avoids premium prices. Target players after market cools.
+{19D1DD9C-0399-480D-BF89-665D6B1E3BC4},4,"False Shart, Here's to you, Run CMC",12.484375,12.484375,64,0.0,46.5,37.5,9.4,Balanced,No extreme tendency. Use standard auction tactics.
+{337F82E7-47FE-4690-BF82-E747FE569002},4,"Allen to this!, Cee Dees in the Face, Put it Justin??, Worst Cook",12.5,12.5,77,0.0,46.6,25.0,10.9,Balanced,No extreme tendency. Use standard auction tactics.
+{4931351F-1C68-451E-937C-87B0C6CCCF5E},4,"D. Adams Family, LaPorta Potty, MaChungus, Two Gibbs, One Kupp",12.453125,12.453125,78,0.0,49.8,56.2,7.8,Balanced,No extreme tendency. Use standard auction tactics.
+{4D0EB596-A4FF-4A67-9781-E287C6AEBEB9},4,One-cut Heroes,12.296875,12.296875,55,0.0,50.8,62.5,4.7,Value Hunter,Avoids premium prices. Target players after market cools.
+{50BD0E27-9A94-4299-A430-801818AE7FD3},3,"Cartel Del Taco, Olivas - Alone",11.3125,11.3125,64,0.0,51.5,100.0,4.2,Value Hunter,Avoids premium prices. Target players after market cools.
+{747BE81C-57BC-46C7-9F3A-530CB8AB1A90},2,"El Ultimo Hombre, Shart City Poo Bums",12.5,12.5,75,0.0,42.7,12.5,9.4,Balanced,No extreme tendency. Use standard auction tactics.
+"{747BE81C-57BC-46C7-9F3A-530CB8AB1A90}, {B61A326A-20D9-4ECC-AD14-FD043471A8F4}",1,El Ultimo Hombre,12.5,12.5,49,0.0,47.5,50.0,0.0,Balanced,No extreme tendency. Use standard auction tactics.
+{74BB4243-DBAE-4F53-B44E-4BD091059259},4,Show Me Dem TDs,12.5,12.5,87,0.0,44.2,31.2,7.8,Balanced,No extreme tendency. Use standard auction tactics.
+"{B61A326A-20D9-4ECC-AD14-FD043471A8F4}, {7B2363C9-F4A6-42D8-85E8-1CCA2D6DFC08}",1,Shooting Ropes💦,12.5,12.5,67,0.0,41.8,6.2,18.8,Balanced,No extreme tendency. Use standard auction tactics.
+{D1BB66CC-C624-4EFB-A903-610BBD8BC6FB},4,Seattle  Ricks ,11.734375,11.734375,69,0.0,52.7,81.2,7.8,Value Hunter,Avoids premium prices. Target players after market cools.
+{E7A504AE-3B49-4CF1-B4F7-AA7EEBF5E474},4,Whos Yurdatty,11.90625,11.90625,69,0.0,58.0,87.5,4.7,Value Hunter,Avoids premium prices. Target players after market cools.
+{EB4B0726-9D8A-4827-8AD7-BDB440E89192},1,Blunder Bust 2000,12.5,12.5,38,0.0,48.1,75.0,0.0,The Sniper,"Patient manager. Let others spend first, attack discounts late."
+{EF9098F5-9F59-4CD9-9DAF-DD0BB49AAE98},3,Kareemin' My Jeans,12.416666666666666,12.416666666666666,74,0.0,53.2,43.8,8.3,Balanced,No extreme tendency. Use standard auction tactics.

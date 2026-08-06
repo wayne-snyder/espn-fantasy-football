@@ -1,95 +1,93 @@
 """
-Creates human-readable manager scouting profiles.
+Creates manager personality profiles.
+
+This report consumes the manager personality engine
+from analytics.core.manager.
 """
 
 from db_utils import load_table, save_report
-
-
-def classify_manager(row):
-
-    aggression = row["avg_aggression"]
-    patience = row["avg_patience"]
-    stars = row["avg_stars_scrubs"]
-
-
-    if aggression >= 70 and patience < 40:
-        return "The Shark"
-
-    if stars >= 80:
-        return "The Whale"
-
-    if patience >= 75:
-        return "The Sniper"
-
-    if aggression < 35:
-        return "The Value Hunter"
-
-    return "Balanced"
-
-
-def recommendation(row):
-
-    archetype = row["archetype"]
-
-
-    advice = {
-
-        "The Shark":
-            "Avoid bidding wars. Let them overpay early.",
-
-        "The Whale":
-            "Allow premium purchases. Attack value after budget is committed.",
-
-        "The Sniper":
-            "Do not leave bargains uncontested late.",
-
-        "The Value Hunter":
-            "Increase nomination pressure and force spending.",
-
-        "Balanced":
-            "Use normal auction strategy."
-    }
-
-
-    return advice.get(
-        archetype,
-        ""
-    )
+from core.manager import build_manager_profiles
 
 
 def main():
 
-    personality = load_table(
-        "auction_personality_career"
+    features = load_table(
+        "manager_features"
     )
 
 
-    personality[
-        "archetype"
-    ] = personality.apply(
-        classify_manager,
-        axis=1
+    profiles = build_manager_profiles(
+        features
     )
 
 
-    personality[
-        "draft_strategy"
-    ] = personality.apply(
-        recommendation,
-        axis=1
+    # Sort strongest personalities first
+    profiles = profiles.sort_values(
+        [
+            "primary_archetype",
+            "aggression_score"
+        ],
+        ascending=[
+            True,
+            False
+        ]
     )
 
 
-    personality = personality.sort_values(
+    columns = [
+        "manager_id",
+
+        "seasons_active",
+
+        "avg_spend",
+
+        "avg_bid",
+
+        "avg_max_bid",
+
         "avg_aggression",
-        ascending=False
+
+        "avg_patience",
+
+        "avg_stars_scrubs",
+
+        "aggression_score",
+
+        "patience_score",
+
+        "stars_scrubs_score",
+
+        "primary_archetype",
+
+        "secondary_trait",
+
+        "confidence",
+
+        "favorite_positions",
+
+        "draft_strategy"
+    ]
+
+
+    # Only select columns that exist
+    columns = [
+        col for col in columns
+        if col in profiles.columns
+    ]
+
+
+    profiles = profiles[
+        columns
+    ]
+
+
+    print(
+        profiles.to_string()
     )
 
-
-    print(personality)
 
     save_report(
-        personality,
+        profiles,
         "manager_profiles.csv"
     )
 
