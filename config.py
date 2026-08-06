@@ -1,15 +1,31 @@
 """
 Configuration for ESPN Fantasy Exporter
+
+SWID and ESPN_S2 are your ESPN session cookies — treat them like a
+password. They're loaded from .env (gitignored, never committed)
+rather than hardcoded here. See .env.example for the expected format.
 """
+
+import os
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 LEAGUE_ID = 119210          # Replace with your league id
 
 START_YEAR = 2022
 END_YEAR = 2025
 
-SWID = "{119D1DD9C-0399-480D-BF89-665D6B1E3BC4}"
+SWID = os.environ.get("SWID")
+ESPN_S2 = os.environ.get("ESPN_S2")
 
-ESPN_S2 = "AEBF9xvl3UO1lvSP%2FPIcZHJW4z9y%2Fb4gAfgxaB%2FkBKq5MMEkFf8xkkvfLZtfnsLgPYhr38OX3A9CrWJpZPmgMVdr8aNYL78R6fRDeBBE9FXl5ImBCNhh85wQjI0qqhZtVp5ijTkaG0lb%2BvCswNARe08oZzIgLbi8f5EJ0GpPmF97KftYB7eqts1W78wfJNrEd4tH5dxCfCJ6KkjyFxqYebv5vnQImX8Z7DpqrMSEIZWSF7Wd8Q7QZtHox6akiodM6Z1UnW7D2TD8vLsgjPvs5gcjqwZtBv8A7FhzjQ7G82RB9Q%3D%3D"
+if not SWID or not ESPN_S2:
+    raise RuntimeError(
+        "SWID and ESPN_S2 must be set in a .env file (see .env.example). "
+        "Get fresh values by logging into fantasy.espn.com and copying "
+        "the SWID and espn_s2 cookies from your browser's devtools."
+    )
 
 OUTPUT_DIRECTORY = "output"
 

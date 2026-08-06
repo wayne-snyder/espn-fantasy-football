@@ -10,6 +10,7 @@ from api.matchups import (
     get_final_week,
 )
 from api.transform import (
+    build_manager_lookup,
     build_player_lookup,
     build_team_lookup,
     flatten_players_from_rosters,
@@ -88,47 +89,18 @@ def main():
         # --------------------------------
         # Manager name lookup
         # --------------------------------
+        # ESPN already includes manager info in the same league response
+        # (league["members"]) — no separate API call needed.
 
-        owner_ids = set()
+        manager_lookup = build_manager_lookup(league.get("members", []))
 
-        for team_info in team_lookup.values():
+        for manager in manager_lookup.values():
 
-            owner_id = team_info.get(
-                "owner"
+            manager["season"] = season
+
+            all_managers.append(
+                manager
             )
-
-            if owner_id:
-                owner_ids.add(
-                    owner_id
-                )
-
-
-        if owner_ids:
-
-            try:
-
-                users = client.get_users(
-                    list(owner_ids)
-                )
-
-                manager_lookup = build_manager_lookup(
-                    users
-                )
-
-                for manager in manager_lookup.values():
-
-                    manager["season"] = season
-
-                    all_managers.append(
-                        manager
-                    )
-
-
-            except Exception as e:
-
-                print(
-                    f"Could not resolve managers for {season}: {e}"
-                )
 
 
         # --------------------------------
